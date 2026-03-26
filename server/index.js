@@ -1,10 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./src/config/db');
+require('dotenv').config();
 
 const authRoutes = require('./src/routes/auth');
 const patientRoutes = require('./src/routes/patients');
-const healthRecordRoutes = require('./src/routes/healthRecords');
+const healthRoutes = require('./src/routes/health');
 const alertRoutes = require('./src/routes/alerts');
 
 const app = express();
@@ -25,12 +26,16 @@ app.use((req, res, next) => {
 });
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    message: 'ElderCare API is running',
+    timestamp: new Date().toISOString() 
+  });
 });
 
 app.use('/api/auth', authRoutes);
 app.use('/api/patients', patientRoutes);
-app.use('/api/health-records', healthRecordRoutes);
+app.use('/api/health', healthRoutes);
 app.use('/api/alerts', alertRoutes);
 
 app.use((err, req, res, next) => {

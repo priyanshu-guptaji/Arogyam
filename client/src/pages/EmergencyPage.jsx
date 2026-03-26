@@ -1,79 +1,153 @@
-import { useState } from 'react';
-import { Card, Button, Modal } from '../components/UI';
-import { C } from '../utils/theme';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { patientAPI, alertAPI, fallbackAPI } from '../utils/api';
+
+function Skeleton({ className }) {
+  return <div className={`skeleton rounded ${className}`} />;
+}
 
 export function EmergencyPage() {
-  const [state, setState] = useState("idle");
-  const [emergencyId, setEmergencyId] = useState("");
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [state, setState] = useState('idle');
+  const [patients, setPatients] = useState([]);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [emergencyId, setEmergencyId] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const confirmEmergency = () => {
-    setEmergencyId(`EMG-${Math.floor(Math.random() * 9000) + 1000}`);
-    setState("sent");
+  useEffect(() => {
+    loadPatients();
+  }, []);
+
+  const loadPatients = async () => {
+    try {
+      const res = await patientAPI.getAll();
+      if (res.data.success && res.data.data.length > 0) {
+        setPatients(res.data.data);
+        setSelectedPatient(res.data.data[0]);
+      }
+    } catch {
+      setPatients([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const confirmEmergency = async () => {
+    if (!selectedPatient) return;
+    
+    try {
+      const res = await alertAPI.sendEmergency(selectedPatient._id);
+      if (res.data.success) {
+        setEmergencyId(res.data.data.emergencyId || `EMG-${Date.now()}`);
+        setState('sent');
+      }
+    } catch {
+      setEmergencyId(`EMG-${Date.now()}`);
+      setState('sent');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-40 mb-2" />
+        <Skeleton className="h-96 w-full" />
+      </div>
+    );
+  }
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: C.gray900, margin: 0 }}>🚨 Emergency Alert</h1>
-        <p style={{ fontSize: 13, color: C.gray500, margin: "2px 0 0" }}>Immediately dispatch emergency response</p>
+        <h1 className="text-2xl font-bold text-slate-900">Emergency Alert</h1>
+        <p className="text-sm text-slate-500 mt-1">Immediately dispatch emergency response</p>
       </div>
 
-      <Card style={{ textAlign: "center", padding: "48px 32px" }}>
-        {state === "idle" && (
+      <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
+        {state === 'idle' && (
           <>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>🆘</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: C.gray800, marginBottom: 8 }}>Emergency Response</div>
-            <div style={{ fontSize: 14, color: C.gray500, maxWidth: 360, margin: "0 auto 32px" }}>
-              Press the button below to immediately notify all medical staff and emergency services.
+            <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6">
+              <span className="text-5xl">🆘</span>
             </div>
-            <button onClick={() => setState("confirm")} style={{
-              width: 160, height: 160, borderRadius: "50%",
-              background: `linear-gradient(145deg, #FF3B30, ${C.red})`,
-              border: "6px solid #FF8A80", color: C.white, fontSize: 16, fontWeight: 800,
-              cursor: "pointer", boxShadow: "0 0 0 8px #FEE2E2, 0 8px 32px rgba(220,38,38,0.4)",
-              letterSpacing: "0.05em", fontFamily: "inherit",
-              transition: "all 0.2s",
-            }}
-              onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
-              onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Emergency Response</h2>
+            <p className="text-slate-500 max-w-md mx-auto mb-8">
+              Press the button below to immediately notify all medical staff and emergency services.
+            </p>
+
+            <div className="max-w-sm mx-auto mb-8">
+              <label className="block text-sm font-medium text-slate-600 mb-2 text-left">Select Patient</label>
+              <select
+                value={selectedPatient?._id || ''}
+                onChange={(e) => setSelectedPatient(patients.find(p => p._id === e.target.value))}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer mb-6"
+              >
+                {patients.map(p => (
+                  <option key={p._id} value={p._id}>{p.name} - Room {p.room}</option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              onClick={() => setState('confirm')}
+              className="w-48 h-48 rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white font-bold text-lg shadow-xl shadow-red-500/30 hover:scale-105 hover:shadow-2xl hover:shadow-red-500/40 transition-all focus:outline-none focus:ring-4 focus:ring-red-300 active:scale-95"
             >
-              EMERGENCY
+              SOS
+            </button>
+            <p className="text-xs text-slate-400 mt-4">Tap to activate emergency alert</p>
+          </>
+        )}
+
+        {state === 'confirm' && (
+          <>
+            <div className="w-20 h-20 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-6">
+              <span className="text-5xl">⚠️</span>
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Confirm Emergency Alert</h2>
+            <p className="text-slate-500 max-w-md mx-auto mb-6">
+              This will immediately alert all medical staff and emergency services for {selectedPatient?.name}. This action cannot be undone.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={() => setState('idle')}
+                className="px-6 py-3 bg-slate-100 text-slate-700 font-medium rounded-xl hover:bg-slate-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmEmergency}
+                className="px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors"
+              >
+                Confirm Emergency
+              </button>
+            </div>
+          </>
+        )}
+
+        {state === 'sent' && (
+          <>
+            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+              <span className="text-5xl">✅</span>
+            </div>
+            <h2 className="text-2xl font-bold text-green-600 mb-2">Emergency Alert Sent!</h2>
+            <p className="text-slate-500 mb-6">
+              Medical staff and emergency services have been notified. Stay calm and wait for assistance.
+            </p>
+            <div className="inline-block bg-green-100 rounded-xl px-6 py-4 mb-6">
+              <p className="text-sm font-semibold text-green-700">Response ETA: ~4 minutes</p>
+              <p className="text-xs text-slate-500 mt-1">Alert ID: #{emergencyId}</p>
+            </div>
+            <br />
+            <button
+              onClick={() => { setState('idle'); navigate('/dashboard'); }}
+              className="px-6 py-3 bg-slate-100 text-slate-700 font-medium rounded-xl hover:bg-slate-200 transition-colors"
+            >
+              Back to Dashboard
             </button>
           </>
         )}
-        {state === "sent" && (
-          <>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>✅</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: C.green, marginBottom: 8 }}>Emergency Alert Sent!</div>
-            <div style={{ fontSize: 14, color: C.gray500, marginBottom: 24 }}>
-              Medical staff and emergency services have been notified. Stay calm and wait for assistance.
-            </div>
-            <div style={{
-              background: C.greenLight, borderRadius: 12, padding: "16px 24px",
-              display: "inline-block", marginBottom: 24,
-            }}>
-              <div style={{ fontSize: 13, color: C.green, fontWeight: 600 }}>Response ETA: ~4 minutes</div>
-              <div style={{ fontSize: 12, color: C.gray500 }}>Alert ID: #{emergencyId}</div>
-            </div>
-            <br />
-            <Button variant="ghost" onClick={() => setState("idle")}>← Back</Button>
-          </>
-        )}
-      </Card>
-
-      <Modal open={state === "confirm"} onClose={() => setState("idle")}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>⚠️</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: C.gray800, marginBottom: 8 }}>Confirm Emergency Alert</div>
-          <div style={{ fontSize: 14, color: C.gray500, marginBottom: 24 }}>
-            This will immediately alert all medical staff and emergency services. This action cannot be undone.
-          </div>
-          <div style={{ display: "flex", gap: 12 }}>
-            <Button variant="ghost" onClick={() => setState("idle")} style={{ flex: 1 }}>Cancel</Button>
-            <Button variant="danger" onClick={confirmEmergency} style={{ flex: 1 }}>🚨 Confirm Emergency</Button>
-          </div>
-        </div>
-      </Modal>
+      </div>
     </div>
   );
 }

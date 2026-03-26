@@ -38,10 +38,14 @@ const healthRecordSchema = new mongoose.Schema({
     type: Number,
     default: null
   },
-  status: {
+  alertType: {
     type: String,
-    enum: ['normal', 'warning', 'critical'],
-    default: 'normal'
+    enum: ['Normal', 'Warning', 'Critical'],
+    default: 'Normal'
+  },
+  alertReason: {
+    type: String,
+    default: ''
   },
   notes: {
     type: String,
@@ -63,14 +67,24 @@ healthRecordSchema.pre('save', function(next) {
   const hr = this.heartRate;
   const o2 = this.oxygenLevel;
   const sbp = this.systolicBP;
-
-  if (hr > 100 || o2 < 93 || sbp > 155) {
-    this.status = 'critical';
-  } else if (hr > 90 || o2 < 96 || sbp > 140) {
-    this.status = 'warning';
+  const dbp = this.diastolicBP;
+  
+  const reasons = [];
+  
+  if (o2 < 92) {
+    this.alertType = 'Critical';
+    reasons.push(`Oxygen (${o2}%) below critical level`);
+  } else if (hr < 50 || hr > 110) {
+    this.alertType = 'Warning';
+    reasons.push(`Heart rate (${hr} bpm) outside normal range`);
+  } else if (sbp > 140 || dbp > 90) {
+    this.alertType = 'Warning';
+    reasons.push(`Blood pressure (${sbp}/${dbp}) elevated`);
   } else {
-    this.status = 'normal';
+    this.alertType = 'Normal';
   }
+  
+  this.alertReason = reasons.join(', ');
   next();
 });
 

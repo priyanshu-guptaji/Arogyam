@@ -1,106 +1,211 @@
 import { useState, useEffect } from 'react';
-import { Card, Select, Button } from '../components/UI';
 import { LineChart } from '../components/LineChart';
-import { C, getStatus } from '../utils/theme';
-import { MOCK_PATIENTS, genHistory, healthApi } from '../utils/api';
+import { patientAPI, fallbackAPI, genHistory } from '../utils/api';
+
+function Skeleton({ className }) {
+  return <div className={`skeleton rounded ${className}`} />;
+}
 
 export function HistoryPage() {
-  const [patient, setPatient] = useState(MOCK_PATIENTS[0]);
-  const [view, setView] = useState("table");
+  const [patients, setPatients] = useState([]);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [view, setView] = useState('table');
   const [page, setPage] = useState(1);
   const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    healthApi.getPatientRecords(patient._id).then(res => setHistory(res.data.data));
-  }, [patient]);
+    loadPatients();
+  }, []);
+
+  const loadPatients = async () => {
+    try {
+      const res = await patientAPI.getAll();
+      if (res.data.success && res.data.data.length > 0) {
+        setPatients(res.data.data);
+        setSelectedPatient(res.data.data[0]);
+      }
+    } catch {
+      setPatients([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedPatient) {
+      loadHistory();
+    }
+  }, [selectedPatient]);
+
+  const loadHistory = async () => {
+    try {
+      const res = await patientAPI.getPatientHealthHistory(selectedPatient._id);
+      if (res.data.success && res.data.data.length > 0) {
+        setHistory(res.data.data.reverse());
+      } else {
+        setHistory(genHistory(selectedPatient._id));
+      }
+    } catch {
+      setHistory(genHistory(selectedPatient._id));
+    }
+  };
 
   const perPage = 5;
   const totalPages = Math.ceil(history.length / perPage);
   const pageData = history.slice((page - 1) * perPage, page * perPage);
 
+  const getStatusClass = (s) => {
+    switch (s) {
+      case 'Critical': return 'bg-red-100 text-red-700';
+      case 'Warning': return 'bg-amber-100 text-amber-700';
+      default: return 'bg-green-100 text-green-700';
+    }
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '--';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-40 mb-2" />
+        <Skeleton className="h-96 w-full" />
+      </div>
+    );
+  }
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: C.gray900, margin: 0 }}>📋 Patient History</h1>
-        <p style={{ fontSize: 13, color: C.gray500, margin: "2px 0 0" }}>Complete health records</p>
+        <h1 className="text-2xl font-bold text-slate-900">Patient History</h1>
+        <p className="text-sm text-slate-500 mt-1">Complete health records</p>
       </div>
 
-      <Card>
-        <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 20, alignItems: "flex-end" }}>
-          <div style={{ flex: 1, minWidth: 200 }}>
-            <Select label="Patient" value={patient._id}
-              onChange={e => { setPatient(MOCK_PATIENTS.find(p => p._id === e.target.value)); setPage(1); }}
-              options={MOCK_PATIENTS.map(p => ({ value: p._id, label: p.name }))} />
+      <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="flex flex-col sm:flex-row gap-4 mb-5">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-slate-600 mb-1.5">Patient</label>
+            <select
+              value={selectedPatient?._id || ''}
+              onChange={(e) => {
+                setSelectedPatient(patients.find(p => p._id === e.target.value));
+                setPage(1);
+              }}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer"
+            >
+              {patients.map(p => (
+                <option key={p._id} value={p._id}>{p.name} - Room {p.room}</option>
+              ))}
+            </select>
           </div>
-          <div style={{ display: "flex", gap: 6 }}>
-            {["table", "chart"].map(v => (
-              <button key={v} onClick={() => setView(v)} style={{
-                padding: "10px 18px", borderRadius: 10, border: "none", cursor: "pointer",
-                background: view === v ? C.blue : C.gray100,
-                color: view === v ? C.white : C.gray600,
-                fontWeight: view === v ? 600 : 400, fontSize: 13, fontFamily: "inherit",
-                transition: "all 0.15s",
-              }}>{v === "table" ? "📋 Table" : "📊 Chart"}</button>
-            ))}
+          <div className="flex items-end gap-2">
+            <button
+              onClick={() => setView('table')}
+              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                view === 'table' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              Table
+            </button>
+            <button
+              onClick={() => setView('chart')}
+              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                view === 'chart' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              Chart
+            </button>
           </div>
         </div>
 
-        {view === "chart" ? (
-          <LineChart data={history} keys={["hr", "o2", "sbp"]} colors={[C.red, C.blue, C.green]} labels={["HR", "O2", "Sys BP"]} />
+        {view === 'chart' ? (
+          <div className="animate-fade-in">
+            <LineChart 
+              data={history} 
+              keys={['heartRate', 'oxygenLevel', 'systolicBP']} 
+              colors={['#DC2626', '#2563EB', '#9333EA']} 
+              labels={['Heart Rate', 'Oxygen %', 'Systolic BP']} 
+            />
+          </div>
         ) : (
           <>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <div className="overflow-x-auto">
+              <table className="w-full">
                 <thead>
-                  <tr style={{ background: C.gray50 }}>
-                    {["Day", "Time", "HR", "Oxygen", "Sys BP", "Dia BP", "Status"].map(h => (
-                      <th key={h} style={{ padding: "10px 12px", textAlign: "left", color: C.gray500, fontWeight: 600, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.04em" }}>{h}</th>
-                    ))}
+                  <tr className="bg-slate-50">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Time</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">HR</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Oxygen</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Sys BP</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Dia BP</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-100">
                   {pageData.map((row, i) => (
-                    <tr key={row._id || i} style={{ borderTop: `1px solid ${C.gray100}`, background: i % 2 === 0 ? C.white : C.gray50 }}>
-                      <td style={{ padding: "11px 12px", color: C.gray700, fontWeight: 600 }}>{row.date}</td>
-                      <td style={{ padding: "11px 12px", color: C.gray500 }}>{row.time}</td>
-                      <td style={{ padding: "11px 12px", fontWeight: 600, color: row.hr > 100 ? C.red : C.gray700 }}>{row.hr}</td>
-                      <td style={{ padding: "11px 12px", fontWeight: 600, color: row.o2 < 93 ? C.red : C.gray700 }}>{row.o2}%</td>
-                      <td style={{ padding: "11px 12px", fontWeight: 600 }}>{row.sbp}</td>
-                      <td style={{ padding: "11px 12px", fontWeight: 600 }}>{row.dbp}</td>
-                      <td style={{ padding: "11px 12px" }}>
-                        <span style={{
-                          display: "inline-flex", alignItems: "center", gap: 4,
-                          padding: "2px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600,
-                          background: row.status === "critical" ? C.redLight : row.status === "warning" ? C.yellowLight : C.greenLight,
-                          color: row.status === "critical" ? C.red : row.status === "warning" ? C.yellow : C.green,
-                          textTransform: "uppercase",
-                        }}>{row.status}</span>
+                    <tr key={row._id || i} className={`${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-blue-50/50 transition-colors`}>
+                      <td className="px-4 py-3 font-medium text-slate-700">{formatDate(row.readingTime || row.date)}</td>
+                      <td className="px-4 py-3 text-slate-500">
+                        {row.readingTime ? new Date(row.readingTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '--'}
+                      </td>
+                      <td className={`px-4 py-3 font-semibold ${row.heartRate > 100 || row.heartRate < 50 ? 'text-red-600' : 'text-slate-700'}`}>
+                        {row.heartRate || '--'}
+                      </td>
+                      <td className={`px-4 py-3 font-semibold ${row.oxygenLevel < 92 ? 'text-red-600' : 'text-slate-700'}`}>
+                        {row.oxygenLevel || '--'}%
+                      </td>
+                      <td className="px-4 py-3 font-semibold text-slate-700">{row.systolicBP || '--'}</td>
+                      <td className="px-4 py-3 font-semibold text-slate-700">{row.diastolicBP || '--'}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusClass(row.alertType)}`}>
+                          {row.alertType || 'Normal'}
+                        </span>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16 }}>
-              <div style={{ fontSize: 12, color: C.gray400 }}>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
+              <p className="text-sm text-slate-400">
                 Showing {(page - 1) * perPage + 1}–{Math.min(page * perPage, history.length)} of {history.length} records
-              </div>
-              <div style={{ display: "flex", gap: 6 }}>
-                <Button variant="ghost" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: "7px 14px", fontSize: 13 }}>← Prev</Button>
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <button key={i} onClick={() => setPage(i + 1)} style={{
-                    width: 32, height: 32, borderRadius: 8, border: "none", cursor: "pointer",
-                    background: page === i + 1 ? C.blue : C.gray100,
-                    color: page === i + 1 ? C.white : C.gray600, fontWeight: 600,
-                    fontSize: 13, fontFamily: "inherit",
-                  }}>{i + 1}</button>
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-200 transition-colors"
+                >
+                  Previous
+                </button>
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setPage(i + 1)}
+                    className={`w-8 h-8 text-sm font-medium rounded-lg transition-colors ${
+                      page === i + 1 ? 'bg-blue-600 text-white' : 'text-slate-600 bg-slate-100 hover:bg-slate-200'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
                 ))}
-                <Button variant="ghost" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} style={{ padding: "7px 14px", fontSize: 13 }}>Next →</Button>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages || totalPages === 0}
+                  className="px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-200 transition-colors"
+                >
+                  Next
+                </button>
               </div>
             </div>
           </>
         )}
-      </Card>
+      </div>
     </div>
   );
 }

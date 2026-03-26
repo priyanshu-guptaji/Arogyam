@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const connectDB = require('./config/db');
-const User = require('./models/User');
-const Patient = require('./models/Patient');
-const HealthRecord = require('./models/HealthRecord');
-const Alert = require('./models/Alert');
+const connectDB = require('./src/config/db');
+const User = require('./src/models/User');
+const Patient = require('./src/models/Patient');
+const HealthRecord = require('./src/models/HealthRecord');
+const Alert = require('./src/models/Alert');
 
 const seedData = async () => {
   try {

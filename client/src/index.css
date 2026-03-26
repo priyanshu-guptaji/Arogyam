@@ -20,7 +20,7 @@
   }
 
   ::selection {
-    @apply bg-primary-200 text-primary-900;
+    @apply bg-blue-200 text-blue-900;
   }
 }
 
@@ -30,7 +30,7 @@
   }
   
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 active:scale-[0.98];
+    @apply bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98];
   }
   
   .btn-secondary {
@@ -46,15 +46,15 @@
   }
   
   .btn-outline {
-    @apply bg-transparent border-2 border-primary-600 text-primary-600 hover:bg-primary-50;
+    @apply bg-transparent border-2 border-blue-600 text-blue-600 hover:bg-blue-50;
   }
 
   .card {
-    @apply bg-white rounded-2xl shadow-card border border-slate-100/50 overflow-hidden;
+    @apply bg-white rounded-2xl border border-slate-200 overflow-hidden;
   }
 
   .input {
-    @apply w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-200;
+    @apply w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200;
   }
 
   .label {
@@ -62,7 +62,7 @@
   }
 
   .status-badge {
-    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide;
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium uppercase tracking-wide;
   }
   
   .status-normal {
@@ -82,7 +82,7 @@
   }
   
   .nav-item-active {
-    @apply bg-primary-50 text-primary-700 hover:bg-primary-100;
+    @apply bg-blue-50 text-blue-700;
   }
 
   .metric-card {
@@ -126,4 +126,42 @@
       radial-gradient(at 80% 50%, hsla(220, 30%, 95%, 0.8) 0px, transparent 50%),
       radial-gradient(at 0% 100%, hsla(220, 20%, 88%, 0.4) 0px, transparent 50%);
   }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out forwards;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }

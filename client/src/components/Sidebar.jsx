@@ -1,6 +1,42 @@
-import { C } from '../utils/theme';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-export function Sidebar({ active, onNav, role, mobile, onClose }) {
+const C = {
+  gray900: "#0F172A",
+  blue: "#1E6FD9",
+  gray400: "#94A3B8",
+  gray500: "#64748B",
+  gray100: "rgba(255,255,255,0.07)",
+  red: "#DC2626",
+  green: "#16A34A",
+  white: "#FFFFFF",
+};
+
+export function Sidebar({ role, mobile, onClose }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const currentPage = () => {
+    const path = location.pathname;
+    if (path.includes("dashboard")) return "dashboard";
+    if (path.includes("alerts")) return "alerts";
+    if (path.includes("history")) return "history";
+    if (path.includes("emergency")) return "emergency";
+    if (path.includes("patients")) return "patients";
+    return "dashboard";
+  };
+
+  const handleNav = (pageId) => {
+    const routeMap = {
+      dashboard: '/dashboard',
+      alerts: '/alerts',
+      history: '/history',
+      emergency: '/emergency',
+      patients: '/patients'
+    };
+    navigate(routeMap[pageId] || '/dashboard');
+    if (mobile && onClose) onClose();
+  };
+
   const items = {
     "Care Manager": [
       { id: "dashboard", icon: "⊞", label: "Dashboard" },
@@ -20,6 +56,8 @@ export function Sidebar({ active, onNav, role, mobile, onClose }) {
     ],
   }[role] || [];
 
+  const current = currentPage();
+
   return (
     <>
       {mobile && (
@@ -32,15 +70,16 @@ export function Sidebar({ active, onNav, role, mobile, onClose }) {
         display: "flex", flexDirection: "column", zIndex: 99,
         boxShadow: mobile ? "4px 0 24px rgba(0,0,0,0.25)" : "none",
       }}>
-        <div style={{ padding: "24px 20px 20px", borderBottom: `1px solid rgba(255,255,255,0.07)` }}>
+        <div style={{ padding: "24px 20px 20px", borderBottom: C.gray100 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{
               width: 36, height: 36, borderRadius: 10, background: C.blue,
               display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
+              color: C.white, fontWeight: 700
             }}>E</div>
             <div>
               <div style={{ color: C.white, fontSize: 14, fontWeight: 700, lineHeight: 1 }}>ElderCare</div>
-              <div style={{ color: C.gray400, fontSize: 10, marginTop: 2 }}>Health Monitor</div>
+              <div style={{ color: C.gray500, fontSize: 10, marginTop: 2 }}>Health Monitor</div>
             </div>
           </div>
         </div>
@@ -54,17 +93,17 @@ export function Sidebar({ active, onNav, role, mobile, onClose }) {
 
         <nav style={{ flex: 1, padding: "4px 12px", display: "flex", flexDirection: "column", gap: 2 }}>
           {items.map(item => (
-            <button key={item.id} onClick={() => { onNav(item.id); if (mobile) onClose(); }}
+            <button key={item.id} onClick={() => handleNav(item.id)}
               style={{
                 display: "flex", alignItems: "center", gap: 12, padding: "11px 12px",
                 borderRadius: 10, border: "none", cursor: "pointer", textAlign: "left", width: "100%",
-                background: active === item.id ? `${C.blue}22` : "transparent",
-                color: active === item.id ? C.blue : C.gray400,
-                fontSize: 14, fontWeight: active === item.id ? 600 : 400,
+                background: current === item.id ? `${C.blue}22` : "transparent",
+                color: current === item.id ? C.blue : C.gray400,
+                fontSize: 14, fontWeight: current === item.id ? 600 : 400,
                 transition: "all 0.15s", fontFamily: "inherit",
               }}
-              onMouseEnter={e => { if (active !== item.id) e.currentTarget.style.background = "rgba(255,255,255,0.05)" }}
-              onMouseLeave={e => { if (active !== item.id) e.currentTarget.style.background = "transparent" }}
+              onMouseEnter={e => { if (current !== item.id) e.currentTarget.style.background = "rgba(255,255,255,0.05)" }}
+              onMouseLeave={e => { if (current !== item.id) e.currentTarget.style.background = "transparent" }}
             >
               <span style={{ fontSize: 16 }}>{item.icon}</span>
               {item.label}
@@ -78,7 +117,7 @@ export function Sidebar({ active, onNav, role, mobile, onClose }) {
           ))}
         </nav>
 
-        <div style={{ padding: "16px 20px", borderTop: `1px solid rgba(255,255,255,0.07)` }}>
+        <div style={{ padding: "16px 20px", borderTop: C.gray100 }}>
           <div style={{ fontSize: 10, color: C.gray500 }}>v2.4.1 Secure Connection</div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.green }} />

@@ -12,8 +12,8 @@ const alertSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['critical', 'warning', 'normal', 'emergency'],
-    default: 'warning'
+    enum: ['Critical', 'Warning', 'Normal', 'Emergency'],
+    default: 'Warning'
   },
   message: {
     type: String,
@@ -36,11 +36,6 @@ const alertSchema = new mongoose.Schema({
     ref: 'User'
   },
   acknowledgedAt: Date,
-  emergencySent: {
-    type: Boolean,
-    default: false
-  },
-  emergencyId: String,
   createdAt: {
     type: Date,
     default: Date.now

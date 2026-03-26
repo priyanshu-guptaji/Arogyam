@@ -1,88 +1,136 @@
-import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { Sidebar } from './components/Sidebar';
-import { Navbar } from './components/Navbar';
-import { AuthPage, AlertsPage, HistoryPage, EmergencyPage, PatientsPage } from './pages';
-import { Dashboard } from './pages/AuthPage';
+import { DashboardSidebar, DashboardHeader } from './components/dashboard';
+import { LandingPage } from './pages/LandingPage';
+import { AlertsPage } from './pages/AlertsPage';
+import { HistoryPage } from './pages/HistoryPage';
+import { EmergencyPage } from './pages/EmergencyPage';
+import { PatientsPage } from './pages/PatientsPage';
+import AuthPage from './pages/AuthPage';
+import { Dashboard } from './pages/Dashboard';
+import { useState } from 'react';
 
-const C = {
-  gray50: "#F8FAFC",
-  gray900: "#0F172A",
-  blue: "#1E6FD9",
-};
+function PageTransition({ children }) {
+  return (
+    <div className="animate-fade-in">
+      {children}
+    </div>
+  );
+}
 
-function MainApp() {
-  const { user, login, logout } = useAuth();
-  const [page, setPage] = useState("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 900);
+function PrivateRoute({ children }) {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <LoadingScreen />;
+  }
+  
+  return user ? children : <Navigate to="/login" replace />;
+}
 
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 900);
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, []);
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-blue-600 flex items-center justify-center">
+          <span className="text-white font-bold text-xl">E</span>
+        </div>
+        <div className="flex justify-center gap-1.5">
+          <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
+          <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
+          <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  useEffect(() => {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap";
-    document.head.appendChild(link);
-    document.body.style.fontFamily = "'DM Sans', sans-serif";
-    document.body.style.margin = "0";
-    document.body.style.background = C.gray50;
-  }, []);
+function AppRoutes() {
+  const { user } = useAuth();
+  
+  return (
+    <Routes>
+      <Route 
+        path="/" 
+        element={user ? <Navigate to="/dashboard" replace /> : <PageTransition><LandingPage /></PageTransition>} 
+      />
+      <Route 
+        path="/login" 
+        element={user ? <Navigate to="/dashboard" replace /> : <PageTransition><AuthPage /></PageTransition>} 
+      />
+      <Route 
+        path="/register" 
+        element={user ? <Navigate to="/dashboard" replace /> : <PageTransition><AuthPage register /></PageTransition>} 
+      />
+      
+      <Route path="/dashboard" element={
+        <PrivateRoute>
+          <PageTransition>
+            <DashboardLayout><Dashboard /></DashboardLayout>
+          </PageTransition>
+        </PrivateRoute>
+      } />
+      <Route path="/patients" element={
+        <PrivateRoute>
+          <PageTransition>
+            <DashboardLayout><PatientsPage /></DashboardLayout>
+          </PageTransition>
+        </PrivateRoute>
+      } />
+      <Route path="/alerts" element={
+        <PrivateRoute>
+          <PageTransition>
+            <DashboardLayout><AlertsPage /></DashboardLayout>
+          </PageTransition>
+        </PrivateRoute>
+      } />
+      <Route path="/history" element={
+        <PrivateRoute>
+          <PageTransition>
+            <DashboardLayout><HistoryPage /></DashboardLayout>
+          </PageTransition>
+        </PrivateRoute>
+      } />
+      <Route path="/emergency" element={
+        <PrivateRoute>
+          <PageTransition>
+            <DashboardLayout><EmergencyPage /></DashboardLayout>
+          </PageTransition>
+        </PrivateRoute>
+      } />
+      
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
 
-  const handleLogin = async (userData) => {
-    localStorage.setItem('token', 'demo-token');
-    return userData;
-  };
-
-  const renderPage = () => {
-    switch (page) {
-      case "dashboard":
-        return <Dashboard user={user} onNav={setPage} />;
-      case "alerts": return <AlertsPage />;
-      case "history": return <HistoryPage />;
-      case "emergency": return <EmergencyPage />;
-      case "patients": return <PatientsPage user={user} />;
-      default: return <Dashboard user={user} onNav={setPage} />;
-    }
-  };
-
-  if (!user) return <AuthPage onLogin={handleLogin} />;
+function DashboardLayout({ children }) {
+  const { user } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'DM Sans', sans-serif" }}>
-      {(!isMobile || sidebarOpen) && (
-        <Sidebar
-          active={page} onNav={setPage} role={user.role}
-          mobile={isMobile} onClose={() => setSidebarOpen(false)}
-        />
-      )}
-
-      <div style={{
-        flex: 1, marginLeft: isMobile ? 0 : 220,
-        display: "flex", flexDirection: "column", minHeight: "100vh",
-      }}>
-        <Navbar
+    <div className="min-h-screen bg-slate-50">
+      <DashboardSidebar 
+        role={user?.role} 
+        mobile={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+      />
+      
+      <div className="lg:pl-56">
+        <DashboardHeader 
           user={user}
-          onLogout={() => { logout(); setPage("dashboard"); }}
-          onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+          onMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
         />
-        <main style={{ flex: 1, padding: isMobile ? "20px 16px" : "28px 32px", maxWidth: 1200 }}>
-          {renderPage()}
+        <main className="p-6 max-w-7xl mx-auto">
+          {children}
         </main>
       </div>
 
-      {isMobile && !sidebarOpen && (
-        <button onClick={() => setSidebarOpen(true)} style={{
-          position: "fixed", bottom: 24, right: 24, width: 52, height: 52,
-          borderRadius: "50%", background: C.blue, color: C.white,
-          border: "none", cursor: "pointer", fontSize: 22, zIndex: 97,
-          boxShadow: "0 4px 16px rgba(30,111,217,0.4)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>☰</button>
+      {mobileMenuOpen && (
+        <button
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-slate-900/50 z-30 lg:hidden animate-fade-in"
+        />
       )}
     </div>
   );
@@ -90,8 +138,10 @@ function MainApp() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

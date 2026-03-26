@@ -26,8 +26,8 @@ export const statusColor = (s) =>
 export const statusBg = (s) =>
   s === "critical" ? C.redLight : s === "warning" ? C.yellowLight : C.greenLight;
 
-export const getStatus = (hr, o2, sbp) => {
-  if (hr > 100 || o2 < 93 || sbp > 155) return "critical";
-  if (hr > 90 || o2 < 96 || sbp > 140) return "warning";
+export const getStatus = (hr, o2, sbp, dbp) => {
+  if (o2 < 92) return "critical";
+  if (hr < 50 || hr > 110 || sbp > 140 || dbp > 90) return "warning";
   return "normal";
 };

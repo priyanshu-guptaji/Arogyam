@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { api } from '../utils/api';
+import { authAPI } from '../utils/api';
 
 const AuthContext = createContext(null);
 
@@ -18,8 +18,12 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const res = await api.get('/auth/me');
-          setUser(res.data.data);
+          const res = await authAPI.getMe();
+          if (res.data.success) {
+            setUser(res.data.data);
+          } else {
+            localStorage.removeItem('token');
+          }
         } catch {
           localStorage.removeItem('token');
         }
@@ -30,19 +34,25 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const res = await api.post('/auth/login', { email, password });
-    const { user: userData, token } = res.data.data;
-    localStorage.setItem('token', token);
-    setUser(userData);
-    return userData;
+    const res = await authAPI.login(email, password);
+    if (res.data.success) {
+      const { user: userData, token } = res.data.data;
+      localStorage.setItem('token', token);
+      setUser(userData);
+      return userData;
+    }
+    throw new Error(res.data.message || 'Login failed');
   };
 
   const register = async (userData) => {
-    const res = await api.post('/auth/register', userData);
-    const { user: newUser, token } = res.data.data;
-    localStorage.setItem('token', token);
-    setUser(newUser);
-    return newUser;
+    const res = await authAPI.register(userData);
+    if (res.data.success) {
+      const { user: newUser, token } = res.data.data;
+      localStorage.setItem('token', token);
+      setUser(newUser);
+      return newUser;
+    }
+    throw new Error(res.data.message || 'Registration failed');
   };
 
   const logout = () => {
