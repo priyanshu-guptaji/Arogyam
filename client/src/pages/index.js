@@ -1,5 +1,8 @@
 export { LandingPage } from './LandingPage';
 export { Dashboard } from './Dashboard';
+export { CareManagerDashboard } from './CareManagerDashboard';
+export { ParentDashboard } from './ParentDashboard';
+export { ChildDashboard } from './ChildDashboard';
 export { AlertsPage } from './AlertsPage';
 export { HistoryPage } from './HistoryPage';
 export { EmergencyPage } from './EmergencyPage';

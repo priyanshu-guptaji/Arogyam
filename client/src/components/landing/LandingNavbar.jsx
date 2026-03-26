@@ -8,7 +8,7 @@ export function LandingNavbar() {
           <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center">
             <span className="text-white font-bold text-lg">E</span>
           </div>
-          <span className="text-xl font-bold text-slate-900">ElderCare</span>
+          <span className="text-xl font-bold text-slate-900">Arogyam</span>
         </div>
 
         <div className="hidden md:flex items-center gap-8">

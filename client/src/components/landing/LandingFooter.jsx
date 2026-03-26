@@ -10,7 +10,7 @@ export function LandingFooter() {
               <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center">
                 <span className="text-white font-bold text-lg">E</span>
               </div>
-              <span className="text-xl font-bold text-white">ElderCare</span>
+              <span className="text-xl font-bold text-white">Arogyam</span>
             </div>
             <p className="text-sm text-slate-400 leading-relaxed max-w-xs">
               Making elder care monitoring simpler, safer, and more accessible for everyone involved.
@@ -62,7 +62,7 @@ export function LandingFooter() {
 
         <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-slate-500">
-            &copy; {new Date().getFullYear()} ElderCare Monitor. All rights reserved.
+            &copy; {new Date().getFullYear()} Arogyam. All rights reserved.
           </p>
           <p className="text-sm text-slate-500">
             Made with care for families everywhere

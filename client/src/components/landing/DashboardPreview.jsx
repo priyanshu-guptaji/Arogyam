@@ -9,7 +9,7 @@ export function DashboardPreview() {
             <div className="w-3 h-3 rounded-full bg-green-500" />
           </div>
           <div className="flex-1 flex justify-center">
-            <div className="bg-slate-800 rounded px-3 py-1 text-xs text-slate-400">dashboard.eldercare.com</div>
+            <div className="bg-slate-800 rounded px-3 py-1 text-xs text-slate-400">arogyam.health</div>
           </div>
         </div>
 

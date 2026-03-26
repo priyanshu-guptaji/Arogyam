@@ -14,23 +14,24 @@
   }
   
   body {
-    @apply bg-slate-50 text-slate-800 font-sans;
+    @apply bg-slate-50 text-slate-800;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     margin: 0;
     padding: 0;
   }
 
   ::selection {
-    @apply bg-blue-200 text-blue-900;
+    @apply bg-teal-200 text-teal-900;
   }
 }
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
   }
   
   .btn-primary {
-    @apply bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98];
+    @apply bg-teal-600 text-white hover:bg-teal-700 active:scale-[0.98] shadow-sm;
   }
   
   .btn-secondary {
@@ -38,23 +39,19 @@
   }
   
   .btn-danger {
-    @apply bg-red-600 text-white hover:bg-red-700 active:scale-[0.98];
+    @apply bg-rose-600 text-white hover:bg-rose-700 active:scale-[0.98];
   }
   
   .btn-ghost {
     @apply bg-transparent text-slate-600 hover:bg-slate-100;
   }
-  
-  .btn-outline {
-    @apply bg-transparent border-2 border-blue-600 text-blue-600 hover:bg-blue-50;
-  }
 
   .card {
-    @apply bg-white rounded-2xl border border-slate-200 overflow-hidden;
+    @apply bg-white rounded-2xl border border-slate-200 shadow-sm;
   }
 
   .input {
-    @apply w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200;
+    @apply w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all duration-200;
   }
 
   .label {
@@ -74,7 +71,7 @@
   }
   
   .status-critical {
-    @apply bg-red-50 text-red-700;
+    @apply bg-rose-50 text-rose-700;
   }
 
   .nav-item {
@@ -82,7 +79,7 @@
   }
   
   .nav-item-active {
-    @apply bg-blue-50 text-blue-700;
+    @apply bg-teal-50 text-teal-700;
   }
 
   .metric-card {
@@ -116,15 +113,6 @@
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: theme('colors.slate.300');
     border-radius: 3px;
-  }
-
-  .gradient-mesh {
-    background-image: 
-      radial-gradient(at 40% 20%, hsla(220, 30%, 95%, 1) 0px, transparent 50%),
-      radial-gradient(at 80% 0%, hsla(220, 25%, 90%, 0.8) 0px, transparent 50%),
-      radial-gradient(at 0% 50%, hsla(220, 25%, 92%, 0.6) 0px, transparent 50%),
-      radial-gradient(at 80% 50%, hsla(220, 30%, 95%, 0.8) 0px, transparent 50%),
-      radial-gradient(at 0% 100%, hsla(220, 20%, 88%, 0.4) 0px, transparent 50%);
   }
 
   .animate-fade-in {

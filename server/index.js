@@ -28,7 +28,7 @@ app.use((req, res, next) => {
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
-    message: 'ElderCare API is running',
+    message: 'Arogyam API is running',
     timestamp: new Date().toISOString() 
   });
 });

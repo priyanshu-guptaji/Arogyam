@@ -20,21 +20,21 @@ const seedData = async () => {
     const users = await User.create([
       {
         name: 'Sarah Mitchell',
-        email: 'sarah@eldercare.com',
+        email: 'sarah@arogyam.health',
         password: 'password123',
         role: 'Care Manager',
         phone: '+1 555-0101'
       },
       {
         name: 'James Wilson',
-        email: 'james@eldercare.com',
+        email: 'james@arogyam.health',
         password: 'password123',
         role: 'Parent',
         phone: '+1 555-0102'
       },
       {
         name: 'Emily Chen',
-        email: 'emily@eldercare.com',
+        email: 'emily@arogyam.health',
         password: 'password123',
         role: 'Child',
         phone: '+1 555-0103'
@@ -167,9 +167,9 @@ const seedData = async () => {
     console.log('\n✅ Database seeded successfully!\n');
     console.log('Test Credentials:');
     console.log('─────────────────');
-    console.log('Care Manager: sarah@eldercare.com / password123');
-    console.log('Parent: james@eldercare.com / password123');
-    console.log('Child: emily@eldercare.com / password123');
+    console.log('Care Manager: sarah@arogyam.health / password123');
+    console.log('Parent: james@arogyam.health / password123');
+    console.log('Child: emily@arogyam.health / password123');
     console.log('');
 
     process.exit(0);

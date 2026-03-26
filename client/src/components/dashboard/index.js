@@ -1,7 +1,10 @@
 export { DashboardSidebar } from './DashboardSidebar';
 export { DashboardHeader } from './DashboardHeader';
-export { HealthCard } from './HealthCard';
+export { HealthCard, HealthCardSkeleton } from './HealthCard';
 export { AlertPanel } from './AlertPanel';
 export { EmergencyButton } from './EmergencyButton';
 export { HistoryTable } from './HistoryTable';
-export { HealthChart } from './HealthChart';
+export { PatientTable } from './PatientTable';
+export { TrendChart } from './TrendChart';
+export { StatusBadge } from './StatusBadge';
+export { AddHealthForm } from './AddHealthForm';

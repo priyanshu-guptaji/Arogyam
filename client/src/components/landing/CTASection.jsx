@@ -8,7 +8,7 @@ export function CTASection() {
           Ready to Get Started?
         </h2>
         <p className="text-lg text-slate-300 mb-8 max-w-2xl mx-auto">
-          Join hundreds of care facilities and families who trust ElderCare Monitor.
+          Join healthcare facilities and families who trust Arogyam for smart health monitoring.
         </p>
         <Link
           to="/register"

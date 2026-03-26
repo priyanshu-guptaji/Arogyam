@@ -30,15 +30,17 @@ function PrivateRoute({ children }) {
 
 function LoadingScreen() {
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center">
       <div className="text-center">
-        <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-blue-600 flex items-center justify-center">
-          <span className="text-white font-bold text-xl">E</span>
+        <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center shadow-2xl shadow-teal-500/30">
+          <svg className="w-7 h-7 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
         </div>
         <div className="flex justify-center gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
-          <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
-          <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
+          <div className="w-2 h-2 rounded-full bg-teal-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+          <div className="w-2 h-2 rounded-full bg-teal-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+          <div className="w-2 h-2 rounded-full bg-teal-400 animate-bounce" style={{ animationDelay: '300ms' }} />
         </div>
       </div>
     </div>
@@ -65,37 +67,27 @@ function AppRoutes() {
       
       <Route path="/dashboard" element={
         <PrivateRoute>
-          <PageTransition>
-            <DashboardLayout><Dashboard /></DashboardLayout>
-          </PageTransition>
+          <DashboardLayout><Dashboard /></DashboardLayout>
         </PrivateRoute>
       } />
       <Route path="/patients" element={
         <PrivateRoute>
-          <PageTransition>
-            <DashboardLayout><PatientsPage /></DashboardLayout>
-          </PageTransition>
+          <DashboardLayout><PatientsPage /></DashboardLayout>
         </PrivateRoute>
       } />
       <Route path="/alerts" element={
         <PrivateRoute>
-          <PageTransition>
-            <DashboardLayout><AlertsPage /></DashboardLayout>
-          </PageTransition>
+          <DashboardLayout><AlertsPage /></DashboardLayout>
         </PrivateRoute>
       } />
       <Route path="/history" element={
         <PrivateRoute>
-          <PageTransition>
-            <DashboardLayout><HistoryPage /></DashboardLayout>
-          </PageTransition>
+          <DashboardLayout><HistoryPage /></DashboardLayout>
         </PrivateRoute>
       } />
       <Route path="/emergency" element={
         <PrivateRoute>
-          <PageTransition>
-            <DashboardLayout><EmergencyPage /></DashboardLayout>
-          </PageTransition>
+          <DashboardLayout><EmergencyPage /></DashboardLayout>
         </PrivateRoute>
       } />
       
