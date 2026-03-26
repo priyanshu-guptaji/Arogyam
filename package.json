@@ -8,6 +8,7 @@
     "client": "npm run dev --prefix client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "seed": "node server/seed.js",
+    "build": "cd client && npm install && npm run build",
     "install:all": "npm install && cd client && npm install"
   },
   "dependencies": {
