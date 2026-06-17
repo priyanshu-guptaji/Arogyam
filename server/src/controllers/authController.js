@@ -1,184 +1,64 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const authService = require('../services/authService');
+const Logger = require('../utils/logger');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'eldercare-secret-key-2024';
-const JWT_EXPIRE = process.env.JWT_EXPIRE || '30d';
-
-const generateToken = (id) => {
-  return jwt.sign({ id }, JWT_SECRET, {
-    expiresIn: JWT_EXPIRE
-  });
-};
-
-exports.register = async (req, res) => {
-  try {
-    const { name, email, password, role, phone } = req.body;
-
-    if (!name || !email || !password) {
+class AuthController {
+  async register(req, res, next) {
+    try {
+      Logger.info(`Registering new staff user: ${req.body.email}`);
+      const result = await authService.register(req.body);
+      return res.status(201).json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      Logger.error(`Registration error: ${error.message}`);
       return res.status(400).json({
         success: false,
-        message: 'Please provide name, email and password'
+        message: error.message
       });
     }
-
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: 'User already exists with this email'
-      });
-    }
-
-    const user = await User.create({
-      name,
-      email,
-      password,
-      role: role || 'Parent',
-      phone: phone || ''
-    });
-
-    const token = generateToken(user._id);
-
-    res.status(201).json({
-      success: true,
-      data: {
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          phone: user.phone
-        },
-        token
-      }
-    });
-  } catch (error) {
-    console.error('Register error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error during registration'
-    });
   }
-};
 
-exports.login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide email and password'
+  async login(req, res, next) {
+    try {
+      Logger.info(`Staff login attempt: ${req.body.email}`);
+      const result = await authService.login(req.body.email, req.body.password);
+      return res.status(200).json({
+        success: true,
+        data: result
       });
-    }
-
-    const user = await User.findOne({ email }).select('+password');
-
-    if (!user) {
+    } catch (error) {
+      Logger.error(`Login error: ${error.message}`);
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials'
+        message: error.message
       });
     }
+  }
 
-    if (!user.isActive) {
-      return res.status(401).json({
+  async getMe(req, res, next) {
+    try {
+      // The user is already attached by auth middleware
+      return res.status(200).json({
+        success: true,
+        data: {
+          user: {
+            id: req.user._id,
+            name: req.user.name,
+            email: req.user.email,
+            role: req.user.role,
+            clinicId: req.user.clinicId
+          }
+        }
+      });
+    } catch (error) {
+      Logger.error(`Get profile error: ${error.message}`);
+      return res.status(500).json({
         success: false,
-        message: 'Account is deactivated'
+        message: error.message
       });
     }
-
-    const isMatch = await user.matchPassword(password);
-
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
-      });
-    }
-
-    const token = generateToken(user._id);
-
-    res.json({
-      success: true,
-      data: {
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          phone: user.phone
-        },
-        token
-      }
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error during login'
-    });
   }
-};
+}
 
-exports.getMe = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id);
-    
-    res.json({
-      success: true,
-      data: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        phone: user.phone,
-        createdAt: user.createdAt
-      }
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
-
-exports.updateProfile = async (req, res) => {
-  try {
-    const { name, phone, currentPassword, newPassword } = req.body;
-    const user = await User.findById(req.user._id).select('+password');
-
-    if (name) user.name = name;
-    if (phone !== undefined) user.phone = phone;
-
-    if (currentPassword && newPassword) {
-      const isMatch = await user.matchPassword(currentPassword);
-      if (!isMatch) {
-        return res.status(400).json({
-          success: false,
-          message: 'Current password is incorrect'
-        });
-      }
-      user.password = newPassword;
-    }
-
-    await user.save();
-
-    res.json({
-      success: true,
-      data: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        phone: user.phone
-      }
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
+module.exports = new AuthController();

@@ -1,13 +1,9 @@
 const User = require('./User');
-const Patient = require('./Patient');
-const HealthRecord = require('./HealthRecord');
-const Alert = require('./Alert');
-const Emergency = require('./Emergency');
+const Clinic = require('./Clinic');
+const Queue = require('./Queue');
 
 module.exports = {
   User,
-  Patient,
-  HealthRecord,
-  Alert,
-  Emergency
+  Clinic,
+  Queue
 };
